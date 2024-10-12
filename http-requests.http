@@ -1,0 +1,121 @@
+@baseUrl = http://localhost:8000
+
+### Reset database
+POST {{baseUrl}}/reset-database
+
+### Create a new student
+POST {{baseUrl}}/students/
+Content-Type: application/json
+
+{
+    "name": "Raihan Islam",
+    "hsc_batch": "2018",
+    "kb_batch": "Duronto",
+    "phone": "01711111111",
+    "address": "Dhaka, Bangladesh",
+    "total_subjects": 3,
+    "required_payment": 2000.00
+}
+
+### Get all students
+GET {{baseUrl}}/students/
+
+
+### Get student details
+GET {{baseUrl}}/students/IEEFXL-2018
+
+### Update student information
+PUT {{baseUrl}}/students/IEEFXL-2018
+Content-Type: application/json
+
+{
+    "name": "Raihan Islam Updated",
+    "hsc_batch": "2018",
+    "kb_batch": "Duronto",
+    "phone": "01722222222",
+    "address": "Updated Address, Dhaka, Bangladesh",
+    "total_subjects": 4,
+    "required_payment": 2500.00
+}
+
+### Delete a student
+DELETE {{baseUrl}}/students/IEEFXL-2018
+
+### Create attendance record
+POST {{baseUrl}}/attendance/
+Content-Type: application/json
+
+{
+    "student_id": "RJ7JBF-2018",
+    "date": "2023-06-16",
+    "present": true
+}
+
+### Update existing attendance record
+POST {{baseUrl}}/attendance/
+Content-Type: application/json
+
+{
+    "student_id": "SE4MJY-2018",
+    "date": "2023-05-15",
+    "present": false
+}
+
+### Delete attendance record
+DELETE {{baseUrl}}/attendance/RJ7JBF-2018/2023-06-16
+
+
+### Get students by KB batch
+GET {{baseUrl}}/students/batch/Duronto
+
+
+### Get monthly attendance
+GET {{baseUrl}}/monthly_attendance/RJ7JBF-2018/2023/6
+
+
+### Create payment record
+POST {{baseUrl}}/payments/
+Content-Type: application/json
+
+{
+    "student_id": "ABC123-2018",
+    "date": "2023-05-15",
+    "amount": 500.00
+}
+
+### Delete payment record
+DELETE {{baseUrl}}/payments/1
+
+### Create exam
+POST {{baseUrl}}/exams/
+Content-Type: application/json
+
+{
+    "date": "2023-05-20",
+    "total_marks": 100
+}
+
+### Delete exam
+DELETE {{baseUrl}}/exams/1
+
+### Create exam result
+POST {{baseUrl}}/exam_results/
+Content-Type: application/json
+
+{
+    "student_id": "ABC123-2018",
+    "exam_id": 1,
+    "obtained_marks": 85
+}
+
+### Delete exam result
+DELETE {{baseUrl}}/exam_results/1
+
+### Get monthly payment
+GET {{baseUrl}}/monthly_payment/ABC123-2018/2023/5
+
+### Get monthly exam results
+GET {{baseUrl}}/monthly_exam_results/ABC123-2018/2023/5
+
+
+
