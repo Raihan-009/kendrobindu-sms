@@ -121,3 +121,9 @@ GET {{baseUrl}}/exams/month/2023/8
 
 ### Get monthly exam percentage for a student
 GET {{baseUrl}}/exams/percentage/XZV6X1-2018/2023/8
+
+### Get student payment history as Excel
+GET {{baseUrl}}/students/XZV6X1-2018/payment_history_excel
+
+### Get student exam history as Excel
+GET {{baseUrl}}/students/XZV6X1-2018/exam_history_excel

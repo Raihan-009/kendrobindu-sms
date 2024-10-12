@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import extract, func
 from . import models, schemas, database
@@ -9,6 +10,12 @@ import string
 from fastapi.encoders import jsonable_encoder
 import logging
 from collections import defaultdict
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+import tempfile
+import os
+from openpyxl.chart import LineChart, Reference
 
 app = FastAPI()
 
@@ -327,4 +334,157 @@ def get_monthly_exam_percentage(student_id: str, year: int, month: int, db: Sess
         year=year,
         month=month,
         percentage=round(percentage, 2)
+    )
+
+@app.get("/students/{student_id}/payment_history_excel")
+def get_student_payment_history_excel(student_id: str, db: Session = Depends(database.get_db)):
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    payments = db.query(models.PaymentHistory).filter(models.PaymentHistory.student_id == student_id).all()
+
+    # Create a new workbook and select the active sheet
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Payment History"
+
+    # Add student information
+    sheet.merge_cells('A1:E1')
+    sheet['A1'] = f"Payment History for {student.name} (ID: {student.id})"
+    sheet['A1'].font = Font(size=16, bold=True)
+    sheet['A1'].alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add headers
+    headers = ["Date", "Payment", "Paid", "Due", "Total Subjects"]
+    for col, header in enumerate(headers, start=1):
+        cell = sheet.cell(row=3, column=col, value=header)
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add payment data and calculate totals
+    total_payment = 0
+    total_paid = 0
+    total_due = 0
+    for row, payment in enumerate(payments, start=4):
+        sheet.cell(row=row, column=1, value=payment.date).alignment = Alignment(horizontal='center')
+        sheet.cell(row=row, column=2, value=payment.payment).alignment = Alignment(horizontal='right')
+        sheet.cell(row=row, column=3, value=payment.paid).alignment = Alignment(horizontal='right')
+        due_cell = sheet.cell(row=row, column=4, value=payment.due)
+        due_cell.alignment = Alignment(horizontal='right')
+        if payment.due > 0:
+            due_cell.fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+            due_cell.font = Font(color="9C0006")
+        else:
+            due_cell.fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+            due_cell.font = Font(color="006100")
+        sheet.cell(row=row, column=5, value=payment.total_subjects).alignment = Alignment(horizontal='center')
+        
+        total_payment += payment.payment
+        total_paid += payment.paid
+        total_due += payment.due
+
+    # Apply borders
+    thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+    for row in sheet['A3:E' + str(sheet.max_row)]:
+        for cell in row:
+            cell.border = thin_border
+
+    # Adjust column widths
+    for col in range(1, 6):
+        sheet.column_dimensions[get_column_letter(col)].width = 15
+
+    # Add total row
+    total_row = sheet.max_row + 2
+    sheet.cell(row=total_row, column=1, value="Total").font = Font(bold=True)
+    sheet.cell(row=total_row, column=2, value=total_payment).font = Font(bold=True)
+    sheet.cell(row=total_row, column=3, value=total_paid).font = Font(bold=True)
+    sheet.cell(row=total_row, column=4, value=total_due).font = Font(bold=True)
+
+    # Create a temporary file to save the Excel sheet
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+        wb.save(tmp.name)
+        tmp_path = tmp.name
+
+    # Return the file as a downloadable response
+    return FileResponse(
+        tmp_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"payment_history_{student_id}.xlsx"
+    )
+
+@app.get("/students/{student_id}/exam_history_excel")
+def get_student_exam_history_excel(student_id: str, db: Session = Depends(database.get_db)):
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    exams = db.query(models.ExamHistory).filter(models.ExamHistory.student_id == student_id).order_by(models.ExamHistory.date).all()
+
+    # Create a new workbook and select the active sheet
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Exam History"
+
+    # Add student information
+    sheet.merge_cells('A1:E1')
+    sheet['A1'] = f"Exam History for {student.name} (ID: {student.id})"
+    sheet['A1'].font = Font(size=16, bold=True)
+    sheet['A1'].alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add headers
+    headers = ["Date", "Subject", "Total Marks", "Obtained Marks", "Percentage"]
+    for col, header in enumerate(headers, start=1):
+        cell = sheet.cell(row=3, column=col, value=header)
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add exam data
+    for row, exam in enumerate(exams, start=4):
+        sheet.cell(row=row, column=1, value=exam.date).alignment = Alignment(horizontal='center')
+        sheet.cell(row=row, column=2, value=exam.subject_name).alignment = Alignment(horizontal='left')
+        sheet.cell(row=row, column=3, value=exam.total_marks).alignment = Alignment(horizontal='right')
+        sheet.cell(row=row, column=4, value=exam.obtained_marks).alignment = Alignment(horizontal='right')
+        percentage = (exam.obtained_marks / exam.total_marks) * 100 if exam.total_marks > 0 else 0
+        sheet.cell(row=row, column=5, value=round(percentage, 2)).alignment = Alignment(horizontal='right')
+
+    # Apply borders
+    thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+    for row in sheet['A3:E' + str(sheet.max_row)]:
+        for cell in row:
+            cell.border = thin_border
+
+    # Adjust column widths
+    for col in range(1, 6):
+        sheet.column_dimensions[get_column_letter(col)].width = 15
+
+    # Create a line chart
+    chart = LineChart()
+    chart.title = "Exam Performance Over Time"
+    chart.y_axis.title = "Percentage"
+    chart.x_axis.title = "Exams"
+
+    # Add data to the chart
+    data = Reference(sheet, min_col=5, min_row=3, max_row=sheet.max_row, max_col=5)
+    chart.add_data(data, titles_from_data=True)
+
+    # Set categories (x-axis labels) to exam dates
+    dates = Reference(sheet, min_col=1, min_row=4, max_row=sheet.max_row)
+    chart.set_categories(dates)
+
+    # Add the chart to the sheet
+    sheet.add_chart(chart, "G3")
+
+    # Create a temporary file to save the Excel sheet
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+        wb.save(tmp.name)
+        tmp_path = tmp.name
+
+    # Return the file as a downloadable response
+    return FileResponse(
+        tmp_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"exam_history_{student_id}.xlsx"
     )

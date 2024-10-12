@@ -22,6 +22,8 @@
 - `PUT /students/{student_id}`: Update student information
 - `DELETE /students/{student_id}`: Delete a student
 - `GET /students/{student_id}/yearly_dues`: Get yearly dues for a student
+- `GET /students/{student_id}/payment_history_excel`: Get payment history as Excel spreadsheet
+- `GET /students/{student_id}/exam_history_excel`: Get exam history as Excel spreadsheet with performance graph
 
 ### Attendance
 - `POST /attendance/`: Create or update attendance record
