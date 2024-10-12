@@ -8,17 +8,33 @@ class StudentBase(BaseModel):
     kb_batch: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
-    total_subjects: Optional[int] = None
-    required_payment: Optional[float] = None
 
 class StudentCreate(StudentBase):
     pass
 
-class Student(StudentBase):
-    id: str
+class PaymentHistoryBase(BaseModel):
+    date: date
+    payment: float
+    paid: float
+    total_subjects: int
+
+class PaymentHistoryCreate(PaymentHistoryBase):
+    student_id: str
+
+class PaymentHistory(PaymentHistoryBase):
+    id: int
+    student_id: str
+    due: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # This replaces orm_mode = True
+
+class Student(StudentBase):
+    id: str
+    payment_history: List[PaymentHistory] = []
+
+    class Config:
+        from_attributes = True  # This replaces orm_mode = True
 
 class AttendanceCreate(BaseModel):
     student_id: str
@@ -29,39 +45,7 @@ class Attendance(AttendanceCreate):
     id: int
 
     class Config:
-        orm_mode = True
-
-class PaymentCreate(BaseModel):
-    student_id: str
-    date: date
-    amount: float
-
-class Payment(PaymentCreate):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-class ExamCreate(BaseModel):
-    date: date
-    total_marks: int
-
-class Exam(ExamCreate):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-class ExamResultCreate(BaseModel):
-    student_id: str
-    exam_id: int
-    obtained_marks: int
-
-class ExamResult(ExamResultCreate):
-    id: int
-
-    class Config:
-        orm_mode = True
+        from_attributes = True  # This replaces orm_mode = True
 
 class MonthlyAttendance(BaseModel):
     student_id: str
@@ -74,13 +58,18 @@ class MonthlyPayment(BaseModel):
     student_id: str
     month: int
     year: int
-    required_payment: float
-    paid_amount: float
-    due_amount: float
+    total_payment: float
+    total_paid: float
+    total_due: float
 
-class MonthlyExamResult(BaseModel):
+class StudentPaymentHistory(BaseModel):
     student_id: str
-    month: int
+    payments: List[PaymentHistory]
+
+class MonthlyPaymentSummary(BaseModel):
     year: int
-    exams: List[Exam]
-    results: List[ExamResult]
+    month: int
+    payments: List[PaymentHistory]
+
+class DuePaymentSummary(BaseModel):
+    payments: List[PaymentHistory]

@@ -8,24 +8,21 @@ POST {{baseUrl}}/students/
 Content-Type: application/json
 
 {
-    "name": "Raihan Islam",
+    "name": "Mir Nowshad",
     "hsc_batch": "2018",
-    "kb_batch": "Duronto",
+    "kb_batch": "Durbar",
     "phone": "01711111111",
-    "address": "Dhaka, Bangladesh",
-    "total_subjects": 3,
-    "required_payment": 2000.00
+    "address": "Dhaka, Bangladesh"
 }
 
 ### Get all students
 GET {{baseUrl}}/students/
 
-
-### Get student details
-GET {{baseUrl}}/students/IEEFXL-2018
+### Get student details (including payment history)
+GET {{baseUrl}}/students/XZV6X1-2018
 
 ### Update student information
-PUT {{baseUrl}}/students/IEEFXL-2018
+PUT {{baseUrl}}/students/XZV6X1-2018
 Content-Type: application/json
 
 {
@@ -33,9 +30,7 @@ Content-Type: application/json
     "hsc_batch": "2018",
     "kb_batch": "Duronto",
     "phone": "01722222222",
-    "address": "Updated Address, Dhaka, Bangladesh",
-    "total_subjects": 4,
-    "required_payment": 2500.00
+    "address": "Updated Address, Dhaka, Bangladesh"
 }
 
 ### Delete a student
@@ -46,7 +41,7 @@ POST {{baseUrl}}/attendance/
 Content-Type: application/json
 
 {
-    "student_id": "RJ7JBF-2018",
+    "student_id": "XZV6X1-2018",
     "date": "2023-06-16",
     "present": true
 }
@@ -62,60 +57,43 @@ Content-Type: application/json
 }
 
 ### Delete attendance record
-DELETE {{baseUrl}}/attendance/RJ7JBF-2018/2023-06-16
-
+DELETE {{baseUrl}}/attendance/FB5SST-2018/2023-06-16
 
 ### Get students by KB batch
 GET {{baseUrl}}/students/batch/Duronto
 
-
 ### Get monthly attendance
-GET {{baseUrl}}/monthly_attendance/RJ7JBF-2018/2023/6
-
+GET {{baseUrl}}/monthly_attendance/XZV6X1-2018/2023/6
 
 ### Create payment record
 POST {{baseUrl}}/payments/
 Content-Type: application/json
 
 {
-    "student_id": "ABC123-2018",
-    "date": "2023-05-15",
-    "amount": 500.00
+    "student_id": "4MG3FL-2018",
+    "date": "2023-08-15",
+    "payment": 2000.00,
+    "paid": 1000.00,
+    "total_subjects": 3
 }
 
 ### Delete payment record
-DELETE {{baseUrl}}/payments/1
+DELETE {{baseUrl}}/payments/CXY2LJ-2018/2023-07-15
 
-### Create exam
-POST {{baseUrl}}/exams/
-Content-Type: application/json
+### Get student payment history
+GET {{baseUrl}}/payments/student/XZV6X1-2018
 
-{
-    "date": "2023-05-20",
-    "total_marks": 100
-}
+### Get yearly payments
+GET {{baseUrl}}/payments/year/2023
 
-### Delete exam
-DELETE {{baseUrl}}/exams/1
+### Get monthly payments
+GET {{baseUrl}}/payments/month/2023/7
 
-### Create exam result
-POST {{baseUrl}}/exam_results/
-Content-Type: application/json
+### Get due payments
+GET {{baseUrl}}/payments/due
 
-{
-    "student_id": "ABC123-2018",
-    "exam_id": 1,
-    "obtained_marks": 85
-}
+### Get monthly payment for a student
+GET {{baseUrl}}/monthly_payment/XZV6X1-2018/2023/8
 
-### Delete exam result
-DELETE {{baseUrl}}/exam_results/1
-
-### Get monthly payment
-GET {{baseUrl}}/monthly_payment/ABC123-2018/2023/5
-
-### Get monthly exam results
-GET {{baseUrl}}/monthly_exam_results/ABC123-2018/2023/5
-
-
-
+### Get student yearly dues
+GET {{baseUrl}}/students/4MG3FL-2018/yearly_dues

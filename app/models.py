@@ -13,12 +13,9 @@ class Student(Base):
     kb_batch = Column(String)
     phone = Column(String)
     address = Column(String)
-    total_subjects = Column(Integer)
-    required_payment = Column(Float)
 
     attendances = relationship("Attendance", back_populates="student")
-    payments = relationship("Payment", back_populates="student")
-    exam_results = relationship("ExamResult", back_populates="student")
+    payment_history = relationship("PaymentHistory", back_populates="student")
 
 class Attendance(Base):
     __tablename__ = "attendances"
@@ -30,32 +27,15 @@ class Attendance(Base):
 
     student = relationship("Student", back_populates="attendances")
 
-class Payment(Base):
-    __tablename__ = "payments"
+class PaymentHistory(Base):
+    __tablename__ = "payment_history"
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(String, ForeignKey("students.id"))
     date = Column(Date, nullable=False)
-    amount = Column(Float, nullable=False)
+    payment = Column(Float, nullable=False)
+    paid = Column(Float, nullable=False)
+    due = Column(Float, nullable=False)
+    total_subjects = Column(Integer, nullable=False)
 
-    student = relationship("Student", back_populates="payments")
-
-class Exam(Base):
-    __tablename__ = "exams"
-
-    id = Column(Integer, primary_key=True, index=True)
-    date = Column(Date, nullable=False)
-    total_marks = Column(Integer, nullable=False)
-
-    results = relationship("ExamResult", back_populates="exam")
-
-class ExamResult(Base):
-    __tablename__ = "exam_results"
-
-    id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(String, ForeignKey("students.id"))
-    exam_id = Column(Integer, ForeignKey("exams.id"))
-    obtained_marks = Column(Integer, nullable=False)
-
-    student = relationship("Student", back_populates="exam_results")
-    exam = relationship("Exam", back_populates="results")
+    student = relationship("Student", back_populates="payment_history")
