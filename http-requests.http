@@ -93,7 +93,31 @@ GET {{baseUrl}}/payments/month/2023/7
 GET {{baseUrl}}/payments/due
 
 ### Get monthly payment for a student
-GET {{baseUrl}}/monthly_payment/XZV6X1-2018/2023/8
+GET {{baseUrl}}/monthly_payment/4MG3FL-2018/2023/8
 
 ### Get student yearly dues
 GET {{baseUrl}}/students/4MG3FL-2018/yearly_dues
+
+### Create exam record
+POST {{baseUrl}}/exams/
+Content-Type: application/json
+
+{
+    "student_id": "XZV6X1-2018",
+    "date": "2023-08-15",
+    "subject_name": "Chemistry",
+    "total_marks": 100,
+    "obtained_marks": 0
+}
+
+### Get student exam history
+GET {{baseUrl}}/exams/student/XZV6X1-2018
+
+### Get yearly exams
+GET {{baseUrl}}/exams/year/2023
+
+### Get monthly exams
+GET {{baseUrl}}/exams/month/2023/8
+
+### Get monthly exam percentage for a student
+GET {{baseUrl}}/exams/percentage/XZV6X1-2018/2023/8

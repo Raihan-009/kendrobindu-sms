@@ -260,3 +260,71 @@ def get_student_yearly_dues(student_id: str, db: Session = Depends(database.get_
     except Exception as e:
         logger.error(f"Error in get_student_yearly_dues: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.post("/exams/", response_model=schemas.ExamHistory)
+def create_exam(exam: schemas.ExamHistoryCreate, db: Session = Depends(database.get_db)):
+    student = db.query(models.Student).filter(models.Student.id == exam.student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    db_exam = models.ExamHistory(**exam.dict())
+    db.add(db_exam)
+    db.commit()
+    db.refresh(db_exam)
+    return db_exam
+
+@app.get("/exams/student/{student_id}", response_model=schemas.StudentExamHistory)
+def get_student_exam_history(student_id: str, db: Session = Depends(database.get_db)):
+    try:
+        student = db.query(models.Student).filter(models.Student.id == student_id).first()
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+        
+        exams = db.query(models.ExamHistory).filter(models.ExamHistory.student_id == student_id).all()
+        return schemas.StudentExamHistory(student_id=student_id, exams=exams)
+    except Exception as e:
+        logger.error(f"Error in get_student_exam_history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/exams/year/{year}", response_model=schemas.YearlyExamSummary)
+def get_yearly_exams(year: int, db: Session = Depends(database.get_db)):
+    exams = db.query(models.ExamHistory).filter(extract('year', models.ExamHistory.date) == year).all()
+    if not exams:
+        raise HTTPException(status_code=404, detail="No exams found for this year")
+    return schemas.YearlyExamSummary(year=year, exams=exams)
+
+@app.get("/exams/month/{year}/{month}", response_model=schemas.MonthlyExamSummary)
+def get_monthly_exams(year: int, month: int, db: Session = Depends(database.get_db)):
+    exams = db.query(models.ExamHistory).filter(
+        extract('year', models.ExamHistory.date) == year,
+        extract('month', models.ExamHistory.date) == month
+    ).all()
+    if not exams:
+        raise HTTPException(status_code=404, detail="No exams found for this month")
+    return schemas.MonthlyExamSummary(year=year, month=month, exams=exams)
+
+@app.get("/exams/percentage/{student_id}/{year}/{month}", response_model=schemas.MonthlyExamPercentage)
+def get_monthly_exam_percentage(student_id: str, year: int, month: int, db: Session = Depends(database.get_db)):
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    exams = db.query(models.ExamHistory).filter(
+        models.ExamHistory.student_id == student_id,
+        extract('year', models.ExamHistory.date) == year,
+        extract('month', models.ExamHistory.date) == month
+    ).all()
+
+    if not exams:
+        raise HTTPException(status_code=404, detail="No exams found for this student in the specified month")
+
+    total_marks = sum(exam.total_marks for exam in exams)
+    obtained_marks = sum(exam.obtained_marks for exam in exams)
+    percentage = (obtained_marks / total_marks) * 100 if total_marks > 0 else 0
+
+    return schemas.MonthlyExamPercentage(
+        student_id=student_id,
+        year=year,
+        month=month,
+        percentage=round(percentage, 2)
+    )

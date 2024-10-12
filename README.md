@@ -1,4 +1,3 @@
-
 ## Setup and Running
 
 1. Install dependencies:
@@ -38,6 +37,13 @@
 - `GET /monthly_payment/{student_id}/{year}/{month}`: Get monthly payment status for a student
 - `DELETE /payments/{student_id}/{date}`: Delete a payment record
 
+### Exams
+- `POST /exams/`: Create an exam record
+- `GET /exams/student/{student_id}`: Get exam history for a student
+- `GET /exams/year/{year}`: Get all exams for a specific year
+- `GET /exams/month/{year}/{month}`: Get all exams for a specific month
+- `GET /exams/percentage/{student_id}/{year}/{month}`: Get monthly exam percentage for a student
+
 ### Database Management
 - `POST /reset-database`: Reset the entire database (use with caution)
 
@@ -46,7 +52,8 @@
 - Custom unique ID generation for students
 - Attendance tracking with duplicate prevention
 - Payment management with due calculation
-- Monthly reports for attendance and payments
+- Exam record management and performance tracking
+- Monthly reports for attendance, payments, and exams
 - Student management by KB batch
 - Yearly dues summary for students
 

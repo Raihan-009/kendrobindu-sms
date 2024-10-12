@@ -16,6 +16,7 @@ class Student(Base):
 
     attendances = relationship("Attendance", back_populates="student")
     payment_history = relationship("PaymentHistory", back_populates="student")
+    exam_history = relationship("ExamHistory", back_populates="student")
 
 class Attendance(Base):
     __tablename__ = "attendances"
@@ -39,3 +40,15 @@ class PaymentHistory(Base):
     total_subjects = Column(Integer, nullable=False)
 
     student = relationship("Student", back_populates="payment_history")
+
+class ExamHistory(Base):
+    __tablename__ = "exam_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(String, ForeignKey("students.id"))
+    date = Column(Date, nullable=False)
+    subject_name = Column(String, nullable=False)
+    total_marks = Column(Float, nullable=False)
+    obtained_marks = Column(Float, nullable=False)
+
+    student = relationship("Student", back_populates="exam_history")
